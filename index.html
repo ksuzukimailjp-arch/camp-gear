@@ -569,11 +569,17 @@
 <body>
 
 <header>
-  <div>
-    <span class="logo">CAMP GEAR</span>
-    <span class="logo" style="font-size:14px;color:var(--text-dim);letter-spacing:2px;margin-left:4px;">MANAGER</span>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div>
+      <span class="logo">CAMP GEAR</span>
+      <span class="logo" style="font-size:14px;color:var(--text-dim);letter-spacing:2px;margin-left:4px;">MANAGER</span>
+    </div>
+    <span id="unsaved-badge" style="display:none;font-size:11px;background:var(--warn);color:#1a1a16;padding:2px 8px;border-radius:20px;font-weight:500;letter-spacing:0.5px;">未保存</span>
   </div>
-  <button class="btn btn-primary" onclick="openGearModal()">＋ 道具を追加</button>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="btn btn-ghost" id="sync-btn" onclick="syncToGas()" style="font-size:12px;">☁ 保存</button>
+    <button class="btn btn-primary" onclick="openGearModal()">＋ 道具を追加</button>
+  </div>
 </header>
 
 <nav>
@@ -859,6 +865,22 @@ function loadData() {
 
 function saveData() {
   localStorage.setItem('campgear', JSON.stringify(data));
+  setUnsaved(true);
+}
+
+function setUnsaved(val) {
+  const badge = document.getElementById('unsaved-badge');
+  const btn = document.getElementById('sync-btn');
+  if (!badge || !btn) return;
+  if (val) {
+    badge.style.display = 'inline-block';
+    btn.style.borderColor = 'var(--warn)';
+    btn.style.color = 'var(--warn)';
+  } else {
+    badge.style.display = 'none';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }
 }
 
 // ==================== TABS ====================
@@ -1416,8 +1438,8 @@ async function testGasConnection() {
 async function syncToGas() {
   const url = getGasUrl();
   if (!url) { alert('先にGAS URLを設定してください（設定タブ）'); return; }
-  if (!confirm('現在のデータをGoogleスプレッドシートに上書き同期します。よろしいですか？')) return;
-  showGasStatus('同期中...', 'warn');
+  const btn = document.getElementById('sync-btn');
+  if (btn) { btn.textContent = '同期中...'; btn.disabled = true; }
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -1425,12 +1447,15 @@ async function syncToGas() {
     });
     const json = await res.json();
     if (json.success) {
-      showGasStatus('✓ スプレッドシートに同期しました', 'ok');
+      setUnsaved(false);
+      showGasStatus('✓ 保存しました', 'ok');
     } else {
-      showGasStatus('同期に失敗しました: ' + (json.error||''), 'error');
+      showGasStatus('同期に失敗しました（ローカルには保存済み）: ' + (json.error||''), 'error');
     }
   } catch(e) {
-    showGasStatus('エラー: ' + e.message, 'error');
+    showGasStatus('通信エラー（ローカルには保存済み）: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.textContent = '☁ 保存'; btn.disabled = false; }
   }
 }
 
@@ -1494,6 +1519,35 @@ if (!localStorage.getItem('campgear_setup_done')) {
   showSetupScreen();
 } else {
   renderGasStatus();
+  // GAS URL設定済みなら起動時に自動読み込み
+  if (getGasUrl()) {
+    autoLoadFromGas();
+  }
+}
+
+async function autoLoadFromGas() {
+  const url = getGasUrl();
+  if (!url) return;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'loadAll' })
+    });
+    const json = await res.json();
+    if (json && json.gear !== undefined) {
+      data = { ...data, ...json };
+      localStorage.setItem('campgear', JSON.stringify(data));
+      updateFilterOptions();
+      renderGear();
+      setUnsaved(false);
+      // 設定タブが開いていれば更新
+      const settingsPage = document.getElementById('page-settings');
+      if (settingsPage && settingsPage.classList.contains('active')) renderSettings();
+    }
+  } catch(e) {
+    // 自動読み込み失敗は静かに無視（手動で再試行できる）
+    console.warn('Auto-load failed:', e.message);
+  }
 }
 </script>
 </body>
