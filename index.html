@@ -822,6 +822,7 @@
     <div id="checklist-items"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeChecklistModal()">閉じる</button>
+      <button class="btn btn-primary" onclick="completeChecklist()">✓ キャンプ完了・使用記録</button>
     </div>
   </div>
 </div>
@@ -923,24 +924,22 @@ function renderGear() {
   list.innerHTML = filtered.map(g => {
     const condClass = g.condition === '要買替' ? 'condition-danger' : g.condition === '要メンテ' ? 'condition-warn' : '';
     const condBadge = g.condition === '良好' ? 'condition-good' : g.condition === '要メンテ' ? 'condition-warn' : 'condition-bad';
-    const usageText = g.usageCount ? `${g.usageCount}回使用` : '';
-    const lastUsed = g.lastUsed ? `最終: ${g.lastUsed}` : '';
+    const usageText = (!g.consumable && g.usageCount) ? `${g.usageCount}回` : '';
+    const lastUsed = (!g.consumable && g.lastUsed) ? `最終: ${g.lastUsed}` : '';
     return `
-    <div class="gear-card ${condClass}" onclick="openGearDetail('${g.id}')">
-      <div>
+    <div class="gear-card ${condClass}">
+      <div style="flex:1;min-width:0;" onclick="openGearModal('${g.id}')">
         <div class="gear-name">${g.brand ? `<span style="color:var(--text-muted);font-size:12px;margin-right:6px;">${g.brand}</span>` : ''}${g.name}</div>
         <div class="gear-meta">
           <span class="gear-category">${g.category||'未分類'}</span>
           ${g.storage ? `<span class="gear-storage">${g.storage}</span>` : ''}
           <span class="condition-badge ${condBadge}">${g.condition||'良好'}</span>
           ${g.consumable ? `<span class="consumable-badge">${g.stock||'消耗品'}</span>` : ''}
-          ${usageText ? `<span class="gear-usage">${usageText}</span>` : ''}
+          ${usageText ? `<span class="gear-usage">🏕 ${usageText}</span>` : ''}
           ${lastUsed ? `<span class="gear-usage">${lastUsed}</span>` : ''}
         </div>
       </div>
-      <div class="gear-actions" onclick="event.stopPropagation()">
-        <button class="icon-btn" title="使用回数を記録" onclick="recordUse('${g.id}')">✓</button>
-        <button class="icon-btn" title="編集" onclick="openGearModal('${g.id}')">✎</button>
+      <div class="gear-actions">
         <button class="icon-btn" title="削除" onclick="deleteGear('${g.id}')" style="color:var(--danger)">✕</button>
       </div>
     </div>`;
@@ -949,15 +948,6 @@ function renderGear() {
 
 function openGearDetail(id) {
   openGearModal(id);
-}
-
-function recordUse(id) {
-  const g = data.gear.find(x => x.id === id);
-  if (!g) return;
-  g.usageCount = (g.usageCount || 0) + 1;
-  g.lastUsed = new Date().toLocaleDateString('ja-JP');
-  saveData();
-  renderGear();
 }
 
 function deleteGear(id) {
@@ -1225,6 +1215,26 @@ function toggleChecklistItem(gearId) {
 function resetChecklist() {
   Object.keys(checklistState).forEach(k => checklistState[k] = false);
   renderChecklistItems();
+}
+
+function completeChecklist() {
+  if (!confirm('チェックした非消耗品の使用回数を+1記録します。よろしいですか？')) return;
+  const today = new Date().toLocaleDateString('ja-JP');
+  let count = 0;
+  Object.entries(checklistState).forEach(([gearId, checked]) => {
+    if (!checked) return;
+    const g = data.gear.find(x => x.id === gearId);
+    if (!g || g.consumable) return;
+    g.usageCount = (g.usageCount || 0) + 1;
+    g.lastUsed = today;
+    count++;
+  });
+  saveData();
+  renderGear();
+  closeChecklistModal();
+  if (count > 0) {
+    setTimeout(() => showGasStatus(`✓ ${count}点の使用回数を記録しました`, 'ok'), 100);
+  }
 }
 
 function closeChecklistModal() {
