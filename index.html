@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAMP GEAR</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1a16;
+    --surface: #242420;
+    --surface2: #2e2e28;
+    --border: #3a3a32;
+    --accent: #c8a96e;
+    --accent2: #8fb87a;
+    --danger: #c0614a;
+    --warn: #c89a4a;
+    --text: #e8e4d8;
+    --text-muted: #888878;
+    --text-dim: #555548;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--accent);
+  }
+
+  .logo span {
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 2px;
+    margin-left: 8px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+  }
+
+  /* NAV TABS */
+  nav {
+    display: flex;
+    gap: 2px;
+    padding: 12px 24px 0;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  nav::-webkit-scrollbar { display: none; }
+
+  .tab {
+    padding: 8px 20px 10px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* MAIN */
+  main { padding: 24px; max-width: 900px; margin: 0 auto; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* FILTER BAR */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--text-dim); }
+
+  select.filter-select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  select.filter-select:focus { border-color: var(--accent); }
+
+  /* BUTTONS */
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #1a1a16;
+  }
+  .btn-primary:hover { background: #d4b87e; }
+
+  .btn-ghost {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .btn-danger {
+    background: none;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+  }
+  .btn-danger:hover { background: var(--danger); color: white; }
+
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* GEAR LIST */
+  .gear-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .gear-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: start;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+
+  .gear-card:hover { border-color: var(--accent); }
+
+  .gear-card.condition-warn { border-left: 3px solid var(--warn); }
+  .gear-card.condition-danger { border-left: 3px solid var(--danger); }
+
+  .gear-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .gear-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .gear-category {
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .gear-storage {
+    font-size: 12px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .gear-storage::before { content: '📦'; font-size: 11px; }
+
+  .gear-usage {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .condition-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  .condition-good { background: #8fb87a22; color: var(--accent2); border: 1px solid #8fb87a44; }
+  .condition-warn { background: #c89a4a22; color: var(--warn); border: 1px solid #c89a4a44; }
+  .condition-bad { background: #c0614a22; color: var(--danger); border: 1px solid #c0614a44; }
+
+  .consumable-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: #6e8fc822;
+    color: #8aaccc;
+    border: 1px solid #6e8fc844;
+  }
+
+  .gear-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: color 0.15s;
+  }
+
+  .icon-btn:hover { color: var(--text); }
+
+  /* COUNT BAR */
+  .count-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .count-text { color: var(--text-muted); font-size: 13px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+  .form-textarea { min-height: 80px; resize: vertical; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 24px;
+  }
+
+  /* CHECKLIST */
+  .checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .checklist-item.checked {
+    opacity: 0.5;
+    text-decoration: line-through;
+  }
+
+  .check-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .checklist-item.checked .check-circle {
+    background: var(--accent2);
+    border-color: var(--accent2);
+  }
+
+  .check-circle::after {
+    content: '✓';
+    font-size: 12px;
+    color: white;
+    display: none;
+  }
+
+  .checklist-item.checked .check-circle::after { display: block; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    margin-top: 28px;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+  }
+
+  .section-title:first-child { margin-top: 0; }
+
+  /* PATTERN CARDS */
+  .pattern-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+
+  .pattern-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .pattern-name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .pattern-gear-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .pattern-gear-tag {
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 3px 10px;
+    color: var(--text-muted);
+  }
+
+  /* PROGRESS */
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent2);
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  .progress-text { font-size: 12px; color: var(--text-muted); }
+
+  /* ROUTINE */
+  .routine-section {
+    margin-bottom: 24px;
+  }
+
+  .routine-section-title {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-dim);
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* STORAGE MANAGER */
+  .storage-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    margin: 4px;
+    font-size: 13px;
+  }
+
+  .chip-delete {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+  }
+
+  .chip-delete:hover { color: var(--danger); }
+
+  /* SETTINGS PAGE */
+  .settings-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .settings-section-title {
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  /* ACTIVE CHECKLIST */
+  .active-checklist-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .active-checklist-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .reset-btn {
+    margin-left: auto;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    main { padding: 16px; }
+    .form-row { grid-template-columns: 1fr; }
+    header { padding: 12px 16px; }
+    nav { padding: 10px 16px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <span class="logo">CAMP GEAR</span>
+    <span class="logo" style="font-size:14px;color:var(--text-dim);letter-spacing:2px;margin-left:4px;">MANAGER</span>
+  </div>
+  <button class="btn btn-primary" onclick="openGearModal()">＋ 道具を追加</button>
+</header>
+
+<nav>
+  <button class="tab active" onclick="switchTab('gear')">道具一覧</button>
+  <button class="tab" onclick="switchTab('patterns')">持ち出しパターン</button>
+  <button class="tab" onclick="switchTab('routine')">片付けルーティン</button>
+  <button class="tab" onclick="switchTab('settings')">設定</button>
+</nav>
+
+<main>
+
+  <!-- GEAR PAGE -->
+  <div class="page active" id="page-gear">
+    <div class="filter-bar" style="margin-top:20px;">
+      <input class="search-box" type="text" placeholder="🔍 道具を検索..." oninput="renderGear()" id="search-input">
+      <select class="filter-select" onchange="renderGear()" id="filter-category">
+        <option value="">カテゴリ：全て</option>
+      </select>
+      <select class="filter-select" onchange="renderGear()" id="filter-storage">
+        <option value="">収納場所：全て</option>
+      </select>
+      <select class="filter-select" onchange="renderGear()" id="filter-condition">
+        <option value="">状態：全て</option>
+        <option value="良好">良好</option>
+        <option value="要メンテ">要メンテ</option>
+        <option value="要買替">要買替</option>
+        <option value="消耗品">消耗品のみ</option>
+      </select>
+    </div>
+    <div class="count-bar">
+      <span class="count-text" id="gear-count">0点</span>
+    </div>
+    <div class="gear-grid" id="gear-list"></div>
+  </div>
+
+  <!-- PATTERNS PAGE -->
+  <div class="page" id="page-patterns">
+    <div style="margin-top:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <div style="color:var(--text-muted);font-size:13px;">スタイル別の持ち出しリストを登録</div>
+        <button class="btn btn-primary" onclick="openPatternModal()">＋ パターンを作成</button>
+      </div>
+      <div id="pattern-list"></div>
+    </div>
+  </div>
+
+  <!-- ROUTINE PAGE -->
+  <div class="page" id="page-routine">
+    <div style="margin-top:20px;" id="routine-container"></div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div class="page" id="page-settings">
+    <div style="margin-top:20px;">
+
+      <div class="settings-section">
+        <div class="settings-section-title">収納場所の管理</div>
+        <div id="storage-chips"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <input class="form-input" id="new-storage-input" placeholder="新しい収納場所..." style="max-width:240px;">
+          <button class="btn btn-ghost" onclick="addStorage()">追加</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">カテゴリの管理</div>
+        <div id="category-chips"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <input class="form-input" id="new-category-input" placeholder="新しいカテゴリ..." style="max-width:240px;">
+          <button class="btn btn-ghost" onclick="addCategory()">追加</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">片付けルーティンの管理</div>
+        <div id="routine-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <select class="form-select" id="new-routine-section" style="max-width:180px;">
+            <option value="現地でやること">現地でやること</option>
+            <option value="帰宅後すぐ">帰宅後すぐ</option>
+            <option value="翌日以降">翌日以降</option>
+          </select>
+          <input class="form-input" id="new-routine-input" placeholder="チェック項目..." style="max-width:240px;">
+          <button class="btn btn-ghost" onclick="addRoutineItem()">追加</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Google Apps Script 連携</div>
+        <div id="gas-status-bar" style="margin-bottom:12px;"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:240px;">
+            <label class="form-label">ウェブアプリURL</label>
+            <input class="form-input" id="gas-url-input" placeholder="https://script.google.com/macros/s/...">
+          </div>
+          <button class="btn btn-primary" onclick="saveGasUrl()">保存・接続</button>
+          <button class="btn btn-ghost" onclick="testGasConnection()">接続テスト</button>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-ghost" onclick="syncToGas()">📤 スプシに同期</button>
+          <button class="btn btn-ghost" onclick="syncFromGas()">📥 スプシから読込</button>
+          <button class="btn btn-danger btn-sm" onclick="clearGasUrl()">URL削除</button>
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:10px;">URLはこのブラウザのみに保存されます。奥さんのデバイスでも同じURLを入力してください。</p>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">データ管理</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-ghost" onclick="exportData()">📤 JSONエクスポート</button>
+          <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">📥 JSONインポート</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<!-- SETUP OVERLAY -->
+<div id="setup-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;width:100%;max-width:480px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:4px;color:var(--accent);margin-bottom:4px;">CAMP GEAR</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:28px;letter-spacing:1px;">はじめてのセットアップ</div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:14px;font-weight:500;margin-bottom:8px;">Google Apps Script URLを入力</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;line-height:1.6;">
+        デプロイで取得したウェブアプリURLを入力すると、Googleスプレッドシートと連携してパートナーとデータを共有できます。
+      </div>
+      <input class="form-input" id="setup-gas-url" placeholder="https://script.google.com/macros/s/..." style="margin-bottom:8px;">
+      <div style="font-size:12px;color:var(--text-dim);">※ URLはこのブラウザにのみ保存されます</div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="skipSetup()">あとで設定する</button>
+      <button class="btn btn-primary" onclick="saveSetupUrl()">保存してはじめる</button>
+    </div>
+  </div>
+</div>
+
+<!-- GEAR MODAL -->
+<div class="modal-overlay" id="gear-modal">
+  <div class="modal">
+    <div class="modal-title" id="gear-modal-title">道具を追加</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">道具名 *</label>
+        <input class="form-input" id="gear-name" placeholder="例：テント">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ブランド</label>
+        <input class="form-input" id="gear-brand" placeholder="例：mont-bell">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">カテゴリ *</label>
+        <select class="form-select" id="gear-category">
+          <option value="">選択...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">収納場所</label>
+        <select class="form-select" id="gear-storage">
+          <option value="">選択...</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">コンディション</label>
+        <select class="form-select" id="gear-condition">
+          <option value="良好">良好</option>
+          <option value="要メンテ">要メンテ</option>
+          <option value="要買替">要買替</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">消耗品</label>
+        <select class="form-select" id="gear-consumable">
+          <option value="false">いいえ</option>
+          <option value="true">はい</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" id="stock-group" style="display:none">
+      <label class="form-label">残量ステータス</label>
+      <select class="form-select" id="gear-stock">
+        <option value="十分">十分</option>
+        <option value="残り少ない">残り少ない</option>
+        <option value="補充が必要">補充が必要</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <textarea class="form-textarea" id="gear-memo" placeholder="使い方のコツ、注意点など..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">取説リンク</label>
+      <input class="form-input" id="gear-manual" placeholder="https://...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeGearModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveGear()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- PATTERN MODAL -->
+<div class="modal-overlay" id="pattern-modal">
+  <div class="modal">
+    <div class="modal-title" id="pattern-modal-title">パターンを作成</div>
+    <div class="form-group">
+      <label class="form-label">パターン名 *</label>
+      <input class="form-input" id="pattern-name" placeholder="例：オートキャンプ、バックパック...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">持ち出す道具を選択</label>
+      <input class="search-box" type="text" placeholder="絞り込み..." oninput="filterPatternGear()" id="pattern-gear-search" style="margin-bottom:10px;">
+      <div id="pattern-gear-checkboxes" style="max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:8px;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePatternModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="savePattern()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVE CHECKLIST OVERLAY -->
+<div class="modal-overlay" id="checklist-modal">
+  <div class="modal" style="max-width:600px;">
+    <div class="active-checklist-header">
+      <div class="active-checklist-title" id="checklist-modal-title"></div>
+      <button class="btn btn-ghost btn-sm reset-btn" onclick="resetChecklist()">リセット</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="checklist-progress"></div></div>
+    <div class="progress-text" id="checklist-progress-text" style="margin-bottom:16px;"></div>
+    <div id="checklist-items"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeChecklistModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+let data = {
+  gear: [],
+  patterns: [],
+  storages: ['大ボックス', '小ボックス', 'クローゼット', '車のトランク'],
+  categories: ['シェルター', 'テント用品', 'シート・マット', '椅子', 'シュラフ・寝具', '照明', '料理', '収納', 'その他'],
+  routine: [
+    { id: 1, section: '現地でやること', text: 'テントの結露・汚れを確認', done: false },
+    { id: 2, section: '現地でやること', text: 'ペグを全て回収したか確認', done: false },
+    { id: 3, section: '現地でやること', text: 'ゴミを全て持ち帰る', done: false },
+    { id: 4, section: '帰宅後すぐ', text: 'クーラーボックスの中身を出す', done: false },
+    { id: 5, section: '帰宅後すぐ', text: 'テント・タープを乾燥させる', done: false },
+    { id: 6, section: '帰宅後すぐ', text: '濡れたものを広げる', done: false },
+    { id: 7, section: '翌日以降', text: 'テント・タープを収納', done: false },
+    { id: 8, section: '翌日以降', text: 'クッカー・食器を洗う', done: false },
+    { id: 9, section: '翌日以降', text: '消耗品（ガス缶等）の補充確認', done: false },
+    { id: 10, section: '翌日以降', text: '道具をボックスに戻す', done: false },
+  ]
+};
+
+let editingGearId = null;
+let editingPatternId = null;
+let activeChecklistPatternId = null;
+let checklistState = {};
+
+// ==================== LOAD/SAVE ====================
+function loadData() {
+  const saved = localStorage.getItem('campgear');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      data = { ...data, ...parsed };
+    } catch(e) {}
+  }
+}
+
+function saveData() {
+  localStorage.setItem('campgear', JSON.stringify(data));
+}
+
+// ==================== TABS ====================
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+  if (tab === 'gear') renderGear();
+  if (tab === 'patterns') renderPatterns();
+  if (tab === 'routine') renderRoutine();
+  if (tab === 'settings') renderSettings();
+}
+
+// ==================== GEAR ====================
+function renderGear() {
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const catFilter = document.getElementById('filter-category').value;
+  const storFilter = document.getElementById('filter-storage').value;
+  const condFilter = document.getElementById('filter-condition').value;
+
+  let filtered = data.gear.filter(g => {
+    const matchSearch = !search || g.name.toLowerCase().includes(search) || (g.brand||'').toLowerCase().includes(search) || (g.memo||'').toLowerCase().includes(search);
+    const matchCat = !catFilter || g.category === catFilter;
+    const matchStor = !storFilter || g.storage === storFilter;
+    let matchCond = true;
+    if (condFilter === '消耗品') matchCond = g.consumable;
+    else if (condFilter) matchCond = g.condition === condFilter;
+    return matchSearch && matchCat && matchStor && matchCond;
+  });
+
+  document.getElementById('gear-count').textContent = `${filtered.length}点 / 合計${data.gear.length}点`;
+
+  const list = document.getElementById('gear-list');
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🏕️</div><div class="empty-text">道具が見つかりません</div></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(g => {
+    const condClass = g.condition === '要買替' ? 'condition-danger' : g.condition === '要メンテ' ? 'condition-warn' : '';
+    const condBadge = g.condition === '良好' ? 'condition-good' : g.condition === '要メンテ' ? 'condition-warn' : 'condition-bad';
+    const usageText = g.usageCount ? `${g.usageCount}回使用` : '';
+    const lastUsed = g.lastUsed ? `最終: ${g.lastUsed}` : '';
+    return `
+    <div class="gear-card ${condClass}" onclick="openGearDetail('${g.id}')">
+      <div>
+        <div class="gear-name">${g.brand ? `<span style="color:var(--text-muted);font-size:12px;margin-right:6px;">${g.brand}</span>` : ''}${g.name}</div>
+        <div class="gear-meta">
+          <span class="gear-category">${g.category||'未分類'}</span>
+          ${g.storage ? `<span class="gear-storage">${g.storage}</span>` : ''}
+          <span class="condition-badge ${condBadge}">${g.condition||'良好'}</span>
+          ${g.consumable ? `<span class="consumable-badge">${g.stock||'消耗品'}</span>` : ''}
+          ${usageText ? `<span class="gear-usage">${usageText}</span>` : ''}
+          ${lastUsed ? `<span class="gear-usage">${lastUsed}</span>` : ''}
+        </div>
+      </div>
+      <div class="gear-actions" onclick="event.stopPropagation()">
+        <button class="icon-btn" title="使用回数を記録" onclick="recordUse('${g.id}')">✓</button>
+        <button class="icon-btn" title="編集" onclick="openGearModal('${g.id}')">✎</button>
+        <button class="icon-btn" title="削除" onclick="deleteGear('${g.id}')" style="color:var(--danger)">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openGearDetail(id) {
+  openGearModal(id);
+}
+
+function recordUse(id) {
+  const g = data.gear.find(x => x.id === id);
+  if (!g) return;
+  g.usageCount = (g.usageCount || 0) + 1;
+  g.lastUsed = new Date().toLocaleDateString('ja-JP');
+  saveData();
+  renderGear();
+}
+
+function deleteGear(id) {
+  if (!confirm('この道具を削除しますか？')) return;
+  data.gear = data.gear.filter(g => g.id !== id);
+  // remove from patterns
+  data.patterns.forEach(p => { p.gearIds = p.gearIds.filter(gid => gid !== id); });
+  saveData();
+  renderGear();
+}
+
+// ==================== GEAR MODAL ====================
+function openGearModal(id = null) {
+  editingGearId = id;
+  const modal = document.getElementById('gear-modal');
+  const title = document.getElementById('gear-modal-title');
+
+  // populate selects
+  const catSel = document.getElementById('gear-category');
+  const storSel = document.getElementById('gear-storage');
+  catSel.innerHTML = '<option value="">選択...</option>' + data.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+  storSel.innerHTML = '<option value="">未設定</option>' + data.storages.map(s => `<option value="${s}">${s}</option>`).join('');
+
+  if (id) {
+    const g = data.gear.find(x => x.id === id);
+    title.textContent = '道具を編集';
+    document.getElementById('gear-name').value = g.name || '';
+    document.getElementById('gear-brand').value = g.brand || '';
+    catSel.value = g.category || '';
+    storSel.value = g.storage || '';
+    document.getElementById('gear-condition').value = g.condition || '良好';
+    document.getElementById('gear-consumable').value = g.consumable ? 'true' : 'false';
+    document.getElementById('gear-stock').value = g.stock || '十分';
+    document.getElementById('gear-memo').value = g.memo || '';
+    document.getElementById('gear-manual').value = g.manual || '';
+  } else {
+    title.textContent = '道具を追加';
+    ['gear-name','gear-brand','gear-memo','gear-manual'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('gear-condition').value = '良好';
+    document.getElementById('gear-consumable').value = 'false';
+    document.getElementById('gear-stock').value = '十分';
+  }
+
+  toggleStockGroup();
+  modal.classList.add('open');
+}
+
+function toggleStockGroup() {
+  const isConsumable = document.getElementById('gear-consumable').value === 'true';
+  document.getElementById('stock-group').style.display = isConsumable ? 'block' : 'none';
+}
+
+document.getElementById('gear-consumable').addEventListener('change', toggleStockGroup);
+
+function closeGearModal() {
+  document.getElementById('gear-modal').classList.remove('open');
+  editingGearId = null;
+}
+
+function saveGear() {
+  const name = document.getElementById('gear-name').value.trim();
+  if (!name) { alert('道具名を入力してください'); return; }
+
+  const gear = {
+    id: editingGearId || Date.now().toString(),
+    name,
+    brand: document.getElementById('gear-brand').value.trim(),
+    category: document.getElementById('gear-category').value,
+    storage: document.getElementById('gear-storage').value,
+    condition: document.getElementById('gear-condition').value,
+    consumable: document.getElementById('gear-consumable').value === 'true',
+    stock: document.getElementById('gear-stock').value,
+    memo: document.getElementById('gear-memo').value.trim(),
+    manual: document.getElementById('gear-manual').value.trim(),
+  };
+
+  if (editingGearId) {
+    const idx = data.gear.findIndex(g => g.id === editingGearId);
+    const existing = data.gear[idx];
+    gear.usageCount = existing.usageCount;
+    gear.lastUsed = existing.lastUsed;
+    data.gear[idx] = gear;
+  } else {
+    data.gear.push(gear);
+  }
+
+  saveData();
+  closeGearModal();
+  renderGear();
+  updateFilterOptions();
+}
+
+function updateFilterOptions() {
+  const catSel = document.getElementById('filter-category');
+  const storSel = document.getElementById('filter-storage');
+  const currentCat = catSel.value;
+  const currentStor = storSel.value;
+
+  catSel.innerHTML = '<option value="">カテゴリ：全て</option>' + data.categories.map(c => `<option value="${c}">${c}</option>`).join('');
+  storSel.innerHTML = '<option value="">収納場所：全て</option>' + data.storages.map(s => `<option value="${s}">${s}</option>`).join('');
+
+  catSel.value = currentCat;
+  storSel.value = currentStor;
+}
+
+// ==================== PATTERNS ====================
+function renderPatterns() {
+  const list = document.getElementById('pattern-list');
+  if (data.patterns.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">パターンがまだありません<br>右上のボタンから作成してください</div></div>`;
+    return;
+  }
+
+  list.innerHTML = data.patterns.map(p => {
+    const gears = p.gearIds.map(id => data.gear.find(g => g.id === id)).filter(Boolean);
+    return `
+    <div class="pattern-card">
+      <div class="pattern-header">
+        <div class="pattern-name">${p.name}</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary btn-sm" onclick="startChecklist('${p.id}')">▶ チェック開始</button>
+          <button class="btn btn-ghost btn-sm" onclick="openPatternModal('${p.id}')">編集</button>
+          <button class="btn btn-danger btn-sm" onclick="deletePattern('${p.id}')">削除</button>
+        </div>
+      </div>
+      <div class="pattern-gear-list">
+        ${gears.map(g => `<span class="pattern-gear-tag">${g.name}</span>`).join('')}
+        ${gears.length === 0 ? '<span style="color:var(--text-dim);font-size:12px;">道具未設定</span>' : ''}
+      </div>
+      <div style="font-size:12px;color:var(--text-dim)">${gears.length}点</div>
+    </div>`;
+  }).join('');
+}
+
+function openPatternModal(id = null) {
+  editingPatternId = id;
+  const title = document.getElementById('pattern-modal-title');
+  title.textContent = id ? 'パターンを編集' : 'パターンを作成';
+
+  document.getElementById('pattern-gear-search').value = '';
+  if (id) {
+    const p = data.patterns.find(x => x.id === id);
+    document.getElementById('pattern-name').value = p.name;
+    renderPatternGearCheckboxes(p.gearIds);
+  } else {
+    document.getElementById('pattern-name').value = '';
+    renderPatternGearCheckboxes([]);
+  }
+
+  document.getElementById('pattern-modal').classList.add('open');
+}
+
+function renderPatternGearCheckboxes(selectedIds = []) {
+  const search = document.getElementById('pattern-gear-search')?.value.toLowerCase() || '';
+  const container = document.getElementById('pattern-gear-checkboxes');
+  const filtered = data.gear.filter(g => !search || g.name.toLowerCase().includes(search) || (g.brand||'').toLowerCase().includes(search));
+
+  // group by category
+  const cats = {};
+  filtered.forEach(g => {
+    const cat = g.category || '未分類';
+    if (!cats[cat]) cats[cat] = [];
+    cats[cat].push(g);
+  });
+
+  container.innerHTML = Object.entries(cats).map(([cat, gears]) => `
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;color:var(--text-dim);letter-spacing:1px;margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--border);">${cat}</div>
+      ${gears.map(g => `
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;border-radius:4px;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+          <input type="checkbox" value="${g.id}" ${selectedIds.includes(g.id) ? 'checked' : ''} style="accent-color:var(--accent);">
+          <span style="font-size:13px;">${g.brand ? `<span style="color:var(--text-dim);font-size:11px;">${g.brand} </span>` : ''}${g.name}</span>
+          ${g.storage ? `<span style="font-size:11px;color:var(--accent);margin-left:auto;">${g.storage}</span>` : ''}
+        </label>`).join('')}
+    </div>`).join('');
+}
+
+function filterPatternGear() { renderPatternGearCheckboxes(getSelectedPatternGearIds()); }
+
+function getSelectedPatternGearIds() {
+  return Array.from(document.querySelectorAll('#pattern-gear-checkboxes input:checked')).map(el => el.value);
+}
+
+function closePatternModal() {
+  document.getElementById('pattern-modal').classList.remove('open');
+  editingPatternId = null;
+}
+
+function savePattern() {
+  const name = document.getElementById('pattern-name').value.trim();
+  if (!name) { alert('パターン名を入力してください'); return; }
+
+  const gearIds = getSelectedPatternGearIds();
+  const pattern = { id: editingPatternId || Date.now().toString(), name, gearIds };
+
+  if (editingPatternId) {
+    const idx = data.patterns.findIndex(p => p.id === editingPatternId);
+    data.patterns[idx] = pattern;
+  } else {
+    data.patterns.push(pattern);
+  }
+
+  saveData();
+  closePatternModal();
+  renderPatterns();
+}
+
+function deletePattern(id) {
+  if (!confirm('このパターンを削除しますか？')) return;
+  data.patterns = data.patterns.filter(p => p.id !== id);
+  saveData();
+  renderPatterns();
+}
+
+// ==================== CHECKLIST ====================
+function startChecklist(patternId) {
+  activeChecklistPatternId = patternId;
+  const p = data.patterns.find(x => x.id === patternId);
+  if (!p) return;
+
+  checklistState = {};
+  p.gearIds.forEach(id => checklistState[id] = false);
+
+  document.getElementById('checklist-modal-title').textContent = p.name;
+  renderChecklistItems();
+  document.getElementById('checklist-modal').classList.add('open');
+}
+
+function renderChecklistItems() {
+  const p = data.patterns.find(x => x.id === activeChecklistPatternId);
+  const gears = p.gearIds.map(id => data.gear.find(g => g.id === id)).filter(Boolean);
+  const checkedCount = Object.values(checklistState).filter(Boolean).length;
+  const total = gears.length;
+
+  document.getElementById('checklist-progress').style.width = total ? `${(checkedCount/total)*100}%` : '0%';
+  document.getElementById('checklist-progress-text').textContent = `${checkedCount} / ${total} 完了`;
+
+  // group by category
+  const cats = {};
+  gears.forEach(g => {
+    const cat = g.category || '未分類';
+    if (!cats[cat]) cats[cat] = [];
+    cats[cat].push(g);
+  });
+
+  document.getElementById('checklist-items').innerHTML = Object.entries(cats).map(([cat, gs]) => `
+    <div style="margin-bottom:16px;">
+      <div class="routine-section-title">${cat}</div>
+      ${gs.map(g => `
+        <div class="checklist-item ${checklistState[g.id] ? 'checked' : ''}" onclick="toggleChecklistItem('${g.id}')">
+          <div class="check-circle"></div>
+          <div>
+            <div style="font-size:14px;">${g.name}</div>
+            ${g.storage ? `<div style="font-size:12px;color:var(--accent)">${g.storage}</div>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function toggleChecklistItem(gearId) {
+  checklistState[gearId] = !checklistState[gearId];
+  renderChecklistItems();
+}
+
+function resetChecklist() {
+  Object.keys(checklistState).forEach(k => checklistState[k] = false);
+  renderChecklistItems();
+}
+
+function closeChecklistModal() {
+  document.getElementById('checklist-modal').classList.remove('open');
+  activeChecklistPatternId = null;
+}
+
+// ==================== ROUTINE ====================
+function renderRoutine() {
+  const container = document.getElementById('routine-container');
+  const sections = [...new Set(data.routine.map(r => r.section))];
+  const checkedCount = data.routine.filter(r => r.done).length;
+  const total = data.routine.length;
+
+  container.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <div class="progress-bar" style="width:200px;"><div class="progress-fill" style="width:${total?(checkedCount/total*100):0}%"></div></div>
+        <div class="progress-text">${checkedCount} / ${total} 完了</div>
+      </div>
+      <button class="btn btn-ghost" onclick="resetRoutine()">リセット</button>
+    </div>
+    ${sections.map(sec => `
+      <div class="routine-section">
+        <div class="routine-section-title">${sec}</div>
+        ${data.routine.filter(r => r.section === sec).map(r => `
+          <div class="checklist-item ${r.done ? 'checked' : ''}" onclick="toggleRoutine(${r.id})">
+            <div class="check-circle"></div>
+            <div style="font-size:14px;">${r.text}</div>
+          </div>`).join('')}
+      </div>`).join('')}`;
+}
+
+function toggleRoutine(id) {
+  const item = data.routine.find(r => r.id === id);
+  if (item) { item.done = !item.done; saveData(); renderRoutine(); }
+}
+
+function resetRoutine() {
+  data.routine.forEach(r => r.done = false);
+  saveData();
+  renderRoutine();
+}
+
+// ==================== SETTINGS ====================
+function renderSettings() {
+  // storages
+  document.getElementById('storage-chips').innerHTML = data.storages.map((s, i) => `
+    <span class="storage-chip">${s}<button class="chip-delete" onclick="removeStorage(${i})">×</button></span>`).join('');
+
+  // categories
+  document.getElementById('category-chips').innerHTML = data.categories.map((c, i) => `
+    <span class="storage-chip">${c}<button class="chip-delete" onclick="removeCategory(${i})">×</button></span>`).join('');
+
+  // routine edit
+  document.getElementById('routine-edit-list').innerHTML = data.routine.map(r => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:11px;color:var(--text-dim);width:100px;flex-shrink:0;">${r.section}</span>
+      <span style="font-size:13px;flex:1;">${r.text}</span>
+      <button class="chip-delete" onclick="removeRoutineItem(${r.id})">×</button>
+    </div>`).join('');
+}
+
+function addStorage() {
+  const val = document.getElementById('new-storage-input').value.trim();
+  if (!val) return;
+  if (data.storages.includes(val)) { alert('すでに存在します'); return; }
+  data.storages.push(val);
+  document.getElementById('new-storage-input').value = '';
+  saveData();
+  renderSettings();
+  updateFilterOptions();
+}
+
+function removeStorage(idx) {
+  data.storages.splice(idx, 1);
+  saveData();
+  renderSettings();
+  updateFilterOptions();
+}
+
+function addCategory() {
+  const val = document.getElementById('new-category-input').value.trim();
+  if (!val) return;
+  if (data.categories.includes(val)) { alert('すでに存在します'); return; }
+  data.categories.push(val);
+  document.getElementById('new-category-input').value = '';
+  saveData();
+  renderSettings();
+}
+
+function removeCategory(idx) {
+  data.categories.splice(idx, 1);
+  saveData();
+  renderSettings();
+}
+
+function addRoutineItem() {
+  const text = document.getElementById('new-routine-input').value.trim();
+  const section = document.getElementById('new-routine-section').value;
+  if (!text) return;
+  const id = Math.max(0, ...data.routine.map(r => r.id)) + 1;
+  data.routine.push({ id, section, text, done: false });
+  document.getElementById('new-routine-input').value = '';
+  saveData();
+  renderSettings();
+}
+
+function removeRoutineItem(id) {
+  data.routine = data.routine.filter(r => r.id !== id);
+  saveData();
+  renderSettings();
+}
+
+// ==================== IMPORT/EXPORT ====================
+function exportData() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'campgear-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      data = imported;
+      saveData();
+      renderGear();
+      updateFilterOptions();
+      alert('インポート完了しました');
+    } catch(err) {
+      alert('ファイルの読み込みに失敗しました');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ==================== GAS INTEGRATION ====================
+function getGasUrl() {
+  return localStorage.getItem('campgear_gas_url') || '';
+}
+
+function saveGasUrl() {
+  const url = document.getElementById('gas-url-input').value.trim();
+  if (!url) { showGasStatus('URLを入力してください', 'warn'); return; }
+  if (!url.startsWith('https://script.google.com')) {
+    showGasStatus('正しいApps Script URLではありません', 'error'); return;
+  }
+  localStorage.setItem('campgear_gas_url', url);
+  showGasStatus('✓ URL保存しました', 'ok');
+  renderGasStatus();
+}
+
+function clearGasUrl() {
+  if (!confirm('GAS URLを削除しますか？')) return;
+  localStorage.removeItem('campgear_gas_url');
+  document.getElementById('gas-url-input').value = '';
+  renderGasStatus();
+}
+
+function showGasStatus(msg, type) {
+  const bar = document.getElementById('gas-status-bar');
+  if (!bar) return;
+  const colors = { ok: 'var(--accent2)', warn: 'var(--warn)', error: 'var(--danger)' };
+  bar.innerHTML = '<span style="font-size:13px;color:' + (colors[type]||'var(--text-muted)') + ';">' + msg + '</span>';
+  setTimeout(() => { if (bar) bar.innerHTML = renderGasStatusHtml(); }, 4000);
+}
+
+function renderGasStatusHtml() {
+  const url = getGasUrl();
+  if (url) {
+    const short = url.length > 60 ? url.slice(0, 60) + '...' : url;
+    return '<span style="font-size:12px;color:var(--accent2);">✓ 接続済み</span><br><span style="font-size:11px;color:var(--text-dim);word-break:break-all;">' + short + '</span>';
+  }
+  return '<span style="font-size:12px;color:var(--text-dim);">未設定 — URLを入力して保存してください</span>';
+}
+
+function renderGasStatus() {
+  const bar = document.getElementById('gas-status-bar');
+  if (!bar) return;
+  const url = getGasUrl();
+  bar.innerHTML = renderGasStatusHtml();
+  if (url) document.getElementById('gas-url-input').value = url;
+}
+
+async function testGasConnection() {
+  const url = document.getElementById('gas-url-input').value.trim() || getGasUrl();
+  if (!url) { showGasStatus('URLが入力されていません', 'warn'); return; }
+  showGasStatus('接続テスト中...', 'warn');
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'get', sheet: 'gear' })
+    });
+    const json = await res.json();
+    if (Array.isArray(json)) {
+      showGasStatus('✓ 接続成功！（道具: ' + json.length + '件）', 'ok');
+    } else {
+      showGasStatus('接続できましたがレスポンスが不正です', 'warn');
+    }
+  } catch(e) {
+    showGasStatus('接続失敗: ' + e.message, 'error');
+  }
+}
+
+async function syncToGas() {
+  const url = getGasUrl();
+  if (!url) { alert('先にGAS URLを設定してください（設定タブ）'); return; }
+  if (!confirm('現在のデータをGoogleスプレッドシートに上書き同期します。よろしいですか？')) return;
+  showGasStatus('同期中...', 'warn');
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'syncAll', data })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showGasStatus('✓ スプレッドシートに同期しました', 'ok');
+    } else {
+      showGasStatus('同期に失敗しました: ' + (json.error||''), 'error');
+    }
+  } catch(e) {
+    showGasStatus('エラー: ' + e.message, 'error');
+  }
+}
+
+async function syncFromGas() {
+  const url = getGasUrl();
+  if (!url) { alert('先にGAS URLを設定してください（設定タブ）'); return; }
+  if (!confirm('スプレッドシートのデータで現在のデータを上書きします。よろしいですか？')) return;
+  showGasStatus('読み込み中...', 'warn');
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'loadAll' })
+    });
+    const json = await res.json();
+    if (json && json.gear !== undefined) {
+      data = { ...data, ...json };
+      saveData();
+      updateFilterOptions();
+      renderGear();
+      showGasStatus('✓ スプレッドシートから読み込みました', 'ok');
+    } else {
+      showGasStatus('データの読み込みに失敗しました', 'error');
+    }
+  } catch(e) {
+    showGasStatus('エラー: ' + e.message, 'error');
+  }
+}
+
+// ==================== SETUP SCREEN ====================
+function showSetupScreen() {
+  document.getElementById('setup-overlay').style.display = 'flex';
+}
+
+function closeSetupScreen() {
+  document.getElementById('setup-overlay').style.display = 'none';
+}
+
+function saveSetupUrl() {
+  const url = document.getElementById('setup-gas-url').value.trim();
+  if (url && !url.startsWith('https://script.google.com')) {
+    alert('正しいApps Script URLではありません');
+    return;
+  }
+  if (url) localStorage.setItem('campgear_gas_url', url);
+  localStorage.setItem('campgear_setup_done', '1');
+  closeSetupScreen();
+  renderGasStatus();
+}
+
+function skipSetup() {
+  localStorage.setItem('campgear_setup_done', '1');
+  closeSetupScreen();
+}
+
+// ==================== INIT ====================
+loadData();
+updateFilterOptions();
+renderGear();
+
+if (!localStorage.getItem('campgear_setup_done')) {
+  showSetupScreen();
+} else {
+  renderGasStatus();
+}
+</script>
+</body>
+</html>
