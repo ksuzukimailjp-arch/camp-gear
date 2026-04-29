@@ -956,9 +956,9 @@ function openGearDetail(id) {
 
 function deleteGear(id) {
   if (!confirm('この道具を削除しますか？')) return;
-  data.gear = data.gear.filter(g => g.id !== id);
+  data.gear = data.gear.filter(g => String(g.id) !== String(id));
   // remove from patterns
-  data.patterns.forEach(p => { p.gearIds = p.gearIds.filter(gid => gid !== id); });
+  data.patterns.forEach(p => { p.gearIds = p.gearIds.filter(gid => String(gid) !== String(id)); });
   saveData();
   renderGear();
 }
@@ -976,7 +976,7 @@ function openGearModal(id = null) {
   storSel.innerHTML = '<option value="">未設定</option>' + data.storages.map(s => `<option value="${s}">${s}</option>`).join('');
 
   if (id) {
-    const g = data.gear.find(x => x.id === id);
+    const g = data.gear.find(x => String(x.id) === String(id));
     title.textContent = '道具を編集';
     document.getElementById('gear-name').value = g.name || '';
     document.getElementById('gear-brand').value = g.brand || '';
