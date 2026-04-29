@@ -924,25 +924,29 @@ function renderGear() {
   list.innerHTML = filtered.map(g => {
     const condClass = g.condition === '要買替' ? 'condition-danger' : g.condition === '要メンテ' ? 'condition-warn' : '';
     const condBadge = g.condition === '良好' ? 'condition-good' : g.condition === '要メンテ' ? 'condition-warn' : 'condition-bad';
-    const usageText = (!g.consumable && g.usageCount) ? `${g.usageCount}回` : '';
-    const lastUsed = (!g.consumable && g.lastUsed) ? `最終: ${g.lastUsed}` : '';
-    return `
-    <div class="gear-card ${condClass}" onclick="openGearModal('${g.id}')">
-      <div>
-        <div class="gear-name">${g.brand ? `<span style="color:var(--text-muted);font-size:12px;margin-right:6px;">${g.brand}</span>` : ''}${g.name}</div>
-        <div class="gear-meta">
-          <span class="gear-category">${g.category||'未分類'}</span>
-          ${g.storage ? `<span class="gear-storage">${g.storage}</span>` : ''}
-          <span class="condition-badge ${condBadge}">${g.condition||'良好'}</span>
-          ${g.consumable ? `<span class="consumable-badge">${g.stock||'消耗品'}</span>` : ''}
-          ${usageText ? `<span class="gear-usage">🏕 ${usageText}</span>` : ''}
-          ${lastUsed ? `<span class="gear-usage">${lastUsed}</span>` : ''}
-        </div>
-      </div>
-      <div class="gear-actions" onclick="event.stopPropagation()">
-        <button class="icon-btn" title="削除" onclick="deleteGear('${g.id}')" style="color:var(--danger)">✕</button>
-      </div>
-    </div>`;
+    const usageText = (!g.consumable && g.usageCount) ? g.usageCount + '回' : '';
+    const lastUsed = (!g.consumable && g.lastUsed) ? '最終: ' + g.lastUsed : '';
+    const brandHtml = g.brand ? '<span style="color:var(--text-muted);font-size:12px;margin-right:6px;">' + g.brand + '</span>' : '';
+    const storageHtml = g.storage ? '<span class="gear-storage">' + g.storage + '</span>' : '';
+    const consumableHtml = g.consumable ? '<span class="consumable-badge">' + (g.stock || '消耗品') + '</span>' : '';
+    const usageHtml = usageText ? '<span class="gear-usage">🏕 ' + usageText + '</span>' : '';
+    const lastUsedHtml = lastUsed ? '<span class="gear-usage">' + lastUsed + '</span>' : '';
+    return '<div class="gear-card ' + condClass + '" onclick="openGearModal(\'' + g.id + '\')">'
+      + '<div>'
+      + '<div class="gear-name">' + brandHtml + g.name + '</div>'
+      + '<div class="gear-meta">'
+      + '<span class="gear-category">' + (g.category || '未分類') + '</span>'
+      + storageHtml
+      + '<span class="condition-badge ' + condBadge + '">' + (g.condition || '良好') + '</span>'
+      + consumableHtml
+      + usageHtml
+      + lastUsedHtml
+      + '</div>'
+      + '</div>'
+      + '<div class="gear-actions" onclick="event.stopPropagation()">'
+      + '<button class="icon-btn" title="削除" onclick="deleteGear(\'' + g.id + '\')" style="color:var(--danger)">✕</button>'
+      + '</div>'
+      + '</div>';
   }).join('');
 }
 
