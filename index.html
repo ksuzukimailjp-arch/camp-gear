@@ -296,7 +296,7 @@
     padding: 16px;
   }
 
-  .modal-overlay.open { display: flex; }
+  .modal-overlay.open { display: flex !important; }
 
   .modal {
     background: var(--surface);
@@ -927,8 +927,8 @@ function renderGear() {
     const usageText = (!g.consumable && g.usageCount) ? `${g.usageCount}回` : '';
     const lastUsed = (!g.consumable && g.lastUsed) ? `最終: ${g.lastUsed}` : '';
     return `
-    <div class="gear-card ${condClass}">
-      <div style="flex:1;min-width:0;" onclick="openGearModal('${g.id}')">
+    <div class="gear-card ${condClass}" onclick="openGearModal('${g.id}')">
+      <div>
         <div class="gear-name">${g.brand ? `<span style="color:var(--text-muted);font-size:12px;margin-right:6px;">${g.brand}</span>` : ''}${g.name}</div>
         <div class="gear-meta">
           <span class="gear-category">${g.category||'未分類'}</span>
@@ -939,7 +939,7 @@ function renderGear() {
           ${lastUsed ? `<span class="gear-usage">${lastUsed}</span>` : ''}
         </div>
       </div>
-      <div class="gear-actions">
+      <div class="gear-actions" onclick="event.stopPropagation()">
         <button class="icon-btn" title="削除" onclick="deleteGear('${g.id}')" style="color:var(--danger)">✕</button>
       </div>
     </div>`;
