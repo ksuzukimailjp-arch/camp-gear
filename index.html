@@ -647,6 +647,9 @@
         <option value="要メンテ">要メンテ</option>
         <option value="要買替">要買替</option>
       </select>
+      <select class="filter-select" id="bulk-category" style="font-size:12px;">
+        <option value="">カテゴリ変更...</option>
+      </select>
       <select class="filter-select" id="bulk-storage" style="font-size:12px;">
         <option value="">収納場所変更...</option>
       </select>
@@ -1014,17 +1017,20 @@ function deleteFiltered() {
 function applyBulkChange() {
   if (selectedIds.size === 0) { alert('道具を選択してください'); return; }
   const cond = document.getElementById('bulk-condition').value;
+  const cat = document.getElementById('bulk-category').value;
   const stor = document.getElementById('bulk-storage').value;
-  if (!cond && !stor) { alert('変更内容を選択してください'); return; }
+  if (!cond && !cat && !stor) { alert('変更内容を選択してください'); return; }
   data.gear.forEach(g => {
     if (!selectedIds.has(String(g.id))) return;
     if (cond) g.condition = cond;
+    if (cat) g.category = cat;
     if (stor) g.storage = stor;
   });
   saveData();
   renderGear();
   // リセット
   document.getElementById('bulk-condition').value = '';
+  document.getElementById('bulk-category').value = '';
   document.getElementById('bulk-storage').value = '';
   const countEl = document.getElementById('select-count-text');
   if (countEl) countEl.textContent = '0件選択中';
@@ -1265,6 +1271,10 @@ function saveGear() {
 }
 
 function updateFilterOptions() {
+  const bulkCat = document.getElementById('bulk-category');
+  if (bulkCat) bulkCat.innerHTML = '<option value="">カテゴリ変更...</option>' + data.categories.map(c => '<option value="' + c + '">' + c + '</option>').join('');
+  const bulkStor2 = document.getElementById('bulk-storage');
+  if (bulkStor2) bulkStor2.innerHTML = '<option value="">収納場所変更...</option>' + data.storages.map(s => '<option value="' + s + '">' + s + '</option>').join('');
   const catSel = document.getElementById('filter-category');
   const storSel = document.getElementById('filter-storage');
   const currentCat = catSel.value;
