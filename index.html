@@ -557,6 +557,19 @@
     margin-left: auto;
   }
 
+  /* SELECT MODE */
+  .gear-card.selectable { cursor: pointer; }
+  .gear-card.selected { border-color: var(--accent) !important; background: #2e2e22; }
+  .select-checkbox {
+    width: 20px; height: 20px; border-radius: 4px;
+    border: 2px solid var(--border); background: var(--bg);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .gear-card.selected .select-checkbox { background: var(--accent); border-color: var(--accent); }
+  .select-checkbox::after { content: '✓'; font-size: 12px; color: #1a1a16; display: none; }
+  .gear-card.selected .select-checkbox::after { display: block; }
+
   /* RESPONSIVE */
   @media (max-width: 600px) {
     main { padding: 16px; }
@@ -608,9 +621,37 @@
         <option value="要買替">要買替</option>
         <option value="消耗品">消耗品のみ</option>
       </select>
+      <select class="filter-select" onchange="renderGear()" id="filter-sort">
+        <option value="">並び替え：デフォルト</option>
+        <option value="name">名前順</option>
+        <option value="category">カテゴリ順</option>
+        <option value="storage">収納場所順</option>
+        <option value="condition">コンディション順</option>
+        <option value="usage">使用回数順</option>
+      </select>
     </div>
     <div class="count-bar">
       <span class="count-text" id="gear-count">0点</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="toggleSelectMode()" id="select-mode-btn">選択</button>
+        <button class="btn btn-ghost btn-sm" onclick="openBulkRegisterModal()">一括登録</button>
+        <button class="btn btn-danger btn-sm" id="delete-filtered-btn" onclick="deleteFiltered()" style="display:none">絞込結果を削除</button>
+      </div>
+    </div>
+    <!-- 選択モード時のアクションバー -->
+    <div id="select-action-bar" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:12px;display:none;gap:8px;flex-wrap:wrap;align-items:center;">
+      <span id="select-count-text" style="font-size:13px;color:var(--text-muted);flex:1;">0件選択中</span>
+      <select class="filter-select" id="bulk-condition" style="font-size:12px;">
+        <option value="">コンディション変更...</option>
+        <option value="良好">良好</option>
+        <option value="要メンテ">要メンテ</option>
+        <option value="要買替">要買替</option>
+      </select>
+      <select class="filter-select" id="bulk-storage" style="font-size:12px;">
+        <option value="">収納場所変更...</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="applyBulkChange()">適用</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSelected()">削除</button>
     </div>
     <div class="gear-grid" id="gear-list"></div>
   </div>
@@ -810,6 +851,28 @@
   </div>
 </div>
 
+
+<!-- BULK REGISTER MODAL -->
+<div class="modal-overlay" id="bulk-register-modal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-title">一括登録</div>
+    <div class="form-group">
+      <label class="form-label">道具名を1行1アイテムで入力</label>
+      <textarea class="form-textarea" id="bulk-names" style="min-height:160px;" placeholder="テント&#10;タープ&#10;チェア&#10;クッカー&#10;..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">ブランド（任意・全アイテムに適用）</label>
+      <input class="form-input" id="bulk-brand" list="brand-suggestions" placeholder="例：mont-bell、後で個別設定もできます">
+      <datalist id="brand-suggestions"></datalist>
+    </div>
+    <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">カテゴリ・収納場所は登録後に一覧の絞り込み＋一括設定で変更できます</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeBulkRegisterModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveBulkRegister()">登録</button>
+    </div>
+  </div>
+</div>
+
 <!-- ACTIVE CHECKLIST OVERLAY -->
 <div class="modal-overlay" id="checklist-modal">
   <div class="modal" style="max-width:600px;">
@@ -897,13 +960,83 @@ function switchTab(tab) {
 }
 
 // ==================== GEAR ====================
-function renderGear() {
+// 選択モード状態
+let selectMode = false;
+let selectedIds = new Set();
+
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedIds.clear();
+  const btn = document.getElementById('select-mode-btn');
+  const bar = document.getElementById('select-action-bar');
+  if (btn) btn.textContent = selectMode ? '選択解除' : '選択';
+  if (bar) bar.style.display = selectMode ? 'flex' : 'none';
+  // bulk-storageを更新
+  const bulkStor = document.getElementById('bulk-storage');
+  if (bulkStor) {
+    bulkStor.innerHTML = '<option value="">収納場所変更...</option>' + data.storages.map(s => '<option value="' + s + '">' + s + '</option>').join('');
+  }
+  renderGear();
+}
+
+function toggleSelectItem(id) {
+  if (selectedIds.has(id)) selectedIds.delete(id);
+  else selectedIds.add(id);
+  const countEl = document.getElementById('select-count-text');
+  if (countEl) countEl.textContent = selectedIds.size + '件選択中';
+  // カードのクラスを更新
+  document.querySelectorAll('.gear-card[data-id]').forEach(el => {
+    if (el.dataset.id === id) el.classList.toggle('selected', selectedIds.has(id));
+  });
+}
+
+function deleteSelected() {
+  if (selectedIds.size === 0) { alert('道具を選択してください'); return; }
+  if (!confirm(selectedIds.size + '件の道具を削除しますか？')) return;
+  data.gear = data.gear.filter(g => !selectedIds.has(String(g.id)));
+  data.patterns.forEach(p => { p.gearIds = p.gearIds.filter(gid => !selectedIds.has(String(gid))); });
+  selectedIds.clear();
+  saveData();
+  toggleSelectMode();
+}
+
+function deleteFiltered() {
+  const filtered = getFilteredGear();
+  if (filtered.length === 0) { alert('削除する道具がありません'); return; }
+  if (!confirm('絞り込み中の ' + filtered.length + '件を削除しますか？')) return;
+  const ids = new Set(filtered.map(g => String(g.id)));
+  data.gear = data.gear.filter(g => !ids.has(String(g.id)));
+  data.patterns.forEach(p => { p.gearIds = p.gearIds.filter(gid => !ids.has(String(gid))); });
+  saveData();
+  renderGear();
+}
+
+function applyBulkChange() {
+  if (selectedIds.size === 0) { alert('道具を選択してください'); return; }
+  const cond = document.getElementById('bulk-condition').value;
+  const stor = document.getElementById('bulk-storage').value;
+  if (!cond && !stor) { alert('変更内容を選択してください'); return; }
+  data.gear.forEach(g => {
+    if (!selectedIds.has(String(g.id))) return;
+    if (cond) g.condition = cond;
+    if (stor) g.storage = stor;
+  });
+  saveData();
+  renderGear();
+  // リセット
+  document.getElementById('bulk-condition').value = '';
+  document.getElementById('bulk-storage').value = '';
+  const countEl = document.getElementById('select-count-text');
+  if (countEl) countEl.textContent = '0件選択中';
+  selectedIds.clear();
+}
+
+function getFilteredGear() {
   const search = document.getElementById('search-input').value.toLowerCase();
   const catFilter = document.getElementById('filter-category').value;
   const storFilter = document.getElementById('filter-storage').value;
   const condFilter = document.getElementById('filter-condition').value;
-
-  let filtered = data.gear.filter(g => {
+  return data.gear.filter(g => {
     const matchSearch = !search || g.name.toLowerCase().includes(search) || (g.brand||'').toLowerCase().includes(search) || (g.memo||'').toLowerCase().includes(search);
     const matchCat = !catFilter || g.category === catFilter;
     const matchStor = !storFilter || g.storage === storFilter;
@@ -912,12 +1045,35 @@ function renderGear() {
     else if (condFilter) matchCond = g.condition === condFilter;
     return matchSearch && matchCat && matchStor && matchCond;
   });
+}
 
-  document.getElementById('gear-count').textContent = `${filtered.length}点 / 合計${data.gear.length}点`;
+function renderGear() {
+  const sortVal = document.getElementById('filter-sort') ? document.getElementById('filter-sort').value : '';
+  let filtered = getFilteredGear();
+
+  // 並び替え
+  if (sortVal === 'name') filtered.sort((a,b) => a.name.localeCompare(b.name, 'ja'));
+  else if (sortVal === 'category') filtered.sort((a,b) => (a.category||'').localeCompare(b.category||'', 'ja'));
+  else if (sortVal === 'storage') filtered.sort((a,b) => (a.storage||'').localeCompare(b.storage||'', 'ja'));
+  else if (sortVal === 'condition') {
+    const order = {'要買替':0,'要メンテ':1,'良好':2};
+    filtered.sort((a,b) => (order[a.condition]??2) - (order[b.condition]??2));
+  }
+  else if (sortVal === 'usage') filtered.sort((a,b) => (b.usageCount||0) - (a.usageCount||0));
+
+  // 絞込結果削除ボタンの表示制御
+  const delBtn = document.getElementById('delete-filtered-btn');
+  const hasFilter = document.getElementById('search-input').value ||
+    document.getElementById('filter-category').value ||
+    document.getElementById('filter-storage').value ||
+    document.getElementById('filter-condition').value;
+  if (delBtn) delBtn.style.display = (hasFilter && filtered.length > 0) ? 'inline-block' : 'none';
+
+  document.getElementById('gear-count').textContent = filtered.length + '点 / 合計' + data.gear.length + '点';
 
   const list = document.getElementById('gear-list');
   if (filtered.length === 0) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🏕️</div><div class="empty-text">道具が見つかりません</div></div>`;
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">🏕️</div><div class="empty-text">道具が見つかりません</div></div>';
     return;
   }
 
@@ -931,7 +1087,23 @@ function renderGear() {
     const consumableHtml = g.consumable ? '<span class="consumable-badge">' + (g.stock || '消耗品') + '</span>' : '';
     const usageHtml = usageText ? '<span class="gear-usage">🏕 ' + usageText + '</span>' : '';
     const lastUsedHtml = lastUsed ? '<span class="gear-usage">' + lastUsed + '</span>' : '';
-    return '<div class="gear-card ' + condClass + '" onclick="openGearModal(\'' + g.id + '\')">'
+    const isSelected = selectedIds.has(String(g.id));
+
+    if (selectMode) {
+      return '<div class="gear-card ' + condClass + (isSelected ? ' selected' : '') + ' selectable" data-id="' + g.id + '" onclick="toggleSelectItem(\'' + g.id + '\')">'
+        + '<div class="select-checkbox"></div>'
+        + '<div style="flex:1;">'
+        + '<div class="gear-name">' + brandHtml + g.name + '</div>'
+        + '<div class="gear-meta">'
+        + '<span class="gear-category">' + (g.category || '未分類') + '</span>'
+        + storageHtml
+        + '<span class="condition-badge ' + condBadge + '">' + (g.condition || '良好') + '</span>'
+        + consumableHtml
+        + '</div>'
+        + '</div>'
+        + '</div>';
+    }
+    return '<div class="gear-card ' + condClass + '" data-id="' + g.id + '" onclick="openGearModal(\'' + g.id + '\')">'
       + '<div>'
       + '<div class="gear-name">' + brandHtml + g.name + '</div>'
       + '<div class="gear-meta">'
@@ -944,6 +1116,7 @@ function renderGear() {
       + '</div>'
       + '</div>'
       + '<div class="gear-actions" onclick="event.stopPropagation()">'
+      + '<button class="icon-btn" title="コピー" onclick="copyGear(\'' + g.id + '\')">⧉</button>'
       + '<button class="icon-btn" title="削除" onclick="deleteGear(\'' + g.id + '\')" style="color:var(--danger)">✕</button>'
       + '</div>'
       + '</div>';
@@ -961,6 +1134,53 @@ function deleteGear(id) {
   data.patterns.forEach(p => { p.gearIds = p.gearIds.filter(gid => String(gid) !== String(id)); });
   saveData();
   renderGear();
+}
+
+
+// ==================== COPY GEAR ====================
+function copyGear(id) {
+  const g = data.gear.find(x => String(x.id) === String(id));
+  if (!g) return;
+  const copy = { ...g, id: Date.now().toString(), name: g.name + ' (コピー)', usageCount: 0, lastUsed: '' };
+  data.gear.push(copy);
+  saveData();
+  renderGear();
+}
+
+// ==================== BULK REGISTER ====================
+function openBulkRegisterModal() {
+  // ブランドのサジェスト更新
+  const brands = [...new Set(data.gear.map(g => g.brand).filter(Boolean))];
+  const datalist = document.getElementById('brand-suggestions');
+  if (datalist) datalist.innerHTML = brands.map(b => '<option value="' + b + '">').join('');
+  document.getElementById('bulk-names').value = '';
+  document.getElementById('bulk-brand').value = '';
+  document.getElementById('bulk-register-modal').classList.add('open');
+}
+
+function closeBulkRegisterModal() {
+  document.getElementById('bulk-register-modal').classList.remove('open');
+}
+
+function saveBulkRegister() {
+  const names = document.getElementById('bulk-names').value
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+  if (names.length === 0) { alert('道具名を入力してください'); return; }
+  const brand = document.getElementById('bulk-brand').value.trim();
+  names.forEach(name => {
+    data.gear.push({
+      id: Date.now().toString() + Math.random().toString(36).slice(2,6),
+      name, brand, category: '', storage: '', condition: '良好',
+      consumable: false, stock: '十分', memo: '', manual: '',
+      usageCount: 0, lastUsed: ''
+    });
+  });
+  saveData();
+  closeBulkRegisterModal();
+  renderGear();
+  updateFilterOptions();
 }
 
 // ==================== GEAR MODAL ====================
