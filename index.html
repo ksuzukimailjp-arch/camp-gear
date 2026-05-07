@@ -653,6 +653,10 @@
       <select class="filter-select" id="bulk-storage" style="font-size:12px;">
         <option value="">収納場所変更...</option>
       </select>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <input class="form-input" id="bulk-brand" list="brand-suggestions" placeholder="ブランド変更..." style="font-size:12px;padding:6px 10px;width:160px;">
+        <datalist id="brand-suggestions"></datalist>
+      </div>
       <button class="btn btn-ghost btn-sm" onclick="applyBulkChange()">適用</button>
       <button class="btn btn-danger btn-sm" onclick="deleteSelected()">削除</button>
     </div>
@@ -861,14 +865,9 @@
     <div class="modal-title">一括登録</div>
     <div class="form-group">
       <label class="form-label">道具名を1行1アイテムで入力</label>
-      <textarea class="form-textarea" id="bulk-names" style="min-height:160px;" placeholder="テント&#10;タープ&#10;チェア&#10;クッカー&#10;..."></textarea>
+      <textarea class="form-textarea" id="bulk-names" style="min-height:200px;" placeholder="テント&#10;タープ&#10;チェア&#10;クッカー&#10;..."></textarea>
     </div>
-    <div class="form-group">
-      <label class="form-label">ブランド（任意・全アイテムに適用）</label>
-      <input class="form-input" id="bulk-brand" list="brand-suggestions" placeholder="例：mont-bell、後で個別設定もできます">
-      <datalist id="brand-suggestions"></datalist>
-    </div>
-    <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">カテゴリ・収納場所は登録後に一覧の絞り込み＋一括設定で変更できます</div>
+    <div style="font-size:12px;color:var(--text-dim);margin-top:4px;">ブランド・カテゴリ・収納場所は登録後に一覧の選択モードで一括設定できます</div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeBulkRegisterModal()">キャンセル</button>
       <button class="btn btn-primary" onclick="saveBulkRegister()">登録</button>
@@ -1019,12 +1018,14 @@ function applyBulkChange() {
   const cond = document.getElementById('bulk-condition').value;
   const cat = document.getElementById('bulk-category').value;
   const stor = document.getElementById('bulk-storage').value;
-  if (!cond && !cat && !stor) { alert('変更内容を選択してください'); return; }
+  const brand = document.getElementById('bulk-brand').value.trim();
+  if (!cond && !cat && !stor && !brand) { alert('変更内容を選択・入力してください'); return; }
   data.gear.forEach(g => {
     if (!selectedIds.has(String(g.id))) return;
     if (cond) g.condition = cond;
     if (cat) g.category = cat;
     if (stor) g.storage = stor;
+    if (brand) g.brand = brand;
   });
   saveData();
   renderGear();
@@ -1032,6 +1033,7 @@ function applyBulkChange() {
   document.getElementById('bulk-condition').value = '';
   document.getElementById('bulk-category').value = '';
   document.getElementById('bulk-storage').value = '';
+  document.getElementById('bulk-brand').value = '';
   const countEl = document.getElementById('select-count-text');
   if (countEl) countEl.textContent = '0件選択中';
   selectedIds.clear();
@@ -1155,12 +1157,7 @@ function copyGear(id) {
 
 // ==================== BULK REGISTER ====================
 function openBulkRegisterModal() {
-  // ブランドのサジェスト更新
-  const brands = [...new Set(data.gear.map(g => g.brand).filter(Boolean))];
-  const datalist = document.getElementById('brand-suggestions');
-  if (datalist) datalist.innerHTML = brands.map(b => '<option value="' + b + '">').join('');
   document.getElementById('bulk-names').value = '';
-  document.getElementById('bulk-brand').value = '';
   document.getElementById('bulk-register-modal').classList.add('open');
 }
 
@@ -1174,11 +1171,10 @@ function saveBulkRegister() {
     .map(s => s.trim())
     .filter(Boolean);
   if (names.length === 0) { alert('道具名を入力してください'); return; }
-  const brand = document.getElementById('bulk-brand').value.trim();
   names.forEach(name => {
     data.gear.push({
       id: Date.now().toString() + Math.random().toString(36).slice(2,6),
-      name, brand, category: '', storage: '', condition: '良好',
+      name, brand: '', category: '', storage: '', condition: '良好',
       consumable: false, stock: '十分', memo: '', manual: '',
       usageCount: 0, lastUsed: ''
     });
@@ -1275,6 +1271,8 @@ function updateFilterOptions() {
   if (bulkCat) bulkCat.innerHTML = '<option value="">カテゴリ変更...</option>' + data.categories.map(c => '<option value="' + c + '">' + c + '</option>').join('');
   const bulkStor2 = document.getElementById('bulk-storage');
   if (bulkStor2) bulkStor2.innerHTML = '<option value="">収納場所変更...</option>' + data.storages.map(s => '<option value="' + s + '">' + s + '</option>').join('');
+  const brandSug = document.getElementById('brand-suggestions');
+  if (brandSug) { const brands = [...new Set(data.gear.map(g => g.brand).filter(Boolean))]; brandSug.innerHTML = brands.map(b => '<option value="' + b + '">').join(''); }
   const catSel = document.getElementById('filter-category');
   const storSel = document.getElementById('filter-storage');
   const currentCat = catSel.value;
